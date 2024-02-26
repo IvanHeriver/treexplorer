@@ -1,0 +1,9 @@
+archive/
+.github/
+node_modules/
+src/
+test/
+dist/*.js.map
+package-lock.json
+tsconfig.json
+rollup.config.js

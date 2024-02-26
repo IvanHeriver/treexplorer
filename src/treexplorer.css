@@ -1,0 +1,96 @@
+.treexplorer-main {
+  --indent-size-internal: var(--indent-size, 1rem);
+  --gap-block-internal: var(--gap-block, 0rem);
+  --gap-inline-internal: var(--gap-inline, 0.25em);
+  --padding-internal: var(--padding, 0.25em);
+  --trunk-color-internal: var(--trunk-color, rgb(181, 198, 211));
+  --trunk-width-internal: var(--trunk-width, 1px);
+
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: flex-start;
+  gap: var(--gap-block-internal);
+  overflow: auto;
+}
+
+.treexplorer-node-expanded {
+  width: 1em;
+  font-size: 1em;
+  text-align: center;
+}
+
+.treexplorer-node-internal {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-inline-internal);
+  padding-left: calc(
+    var(--depth) * var(--indent-size-internal) + var(--gap-inline-internal)
+  );
+  cursor: pointer;
+  user-select: none;
+}
+.treexplorer-node-text {
+  padding-block: var(--padding-internal);
+}
+
+.treexplorer-node-children {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--gap-block-internal);
+  padding-top: var(--gap-block-internal);
+}
+
+/* trunk and leaves */
+
+.treexplorer-node-internal {
+  position: relative;
+}
+
+.treexplorer-node-children > .treexplorer-node-container {
+  position: relative;
+}
+
+.treexplorer-node-children > .treexplorer-node-container:before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: calc(-1 * var(--gap-block-internal) / 2);
+  bottom: calc(-1 * var(--gap-block-internal) / 2);
+  left: calc(
+    (var(--depth) - 1) * (var(--indent-size-internal)) +
+      var(--gap-inline-internal) * 2 + 0.5em
+  );
+  translate: -5px;
+  width: var(--trunk-width-internal);
+  background-color: var(--trunk-color-internal);
+}
+
+.treexplorer-node-children > .treexplorer-node-container:first-child:before {
+  top: 0;
+}
+
+.treexplorer-node-children > .treexplorer-node-container:last-child:before {
+  bottom: 0;
+}
+
+/* states */
+
+.treexplorer-node {
+  background-color: rgb(129, 203, 255, 0);
+}
+
+.treexplorer-node:hover {
+  background-color: rgb(129, 203, 255);
+}
+
+.treexplorer-node.selected {
+  background-color: rgb(41, 166, 255);
+}
+
+/* focus */
+
+.treexplorer-node:focus-within {
+  outline: 1px solid black;
+  outline-offset: -1px;
+}

@@ -1,0 +1,56 @@
+/* customizing treexplorer */
+
+.treexplorer-main img {
+  height: 20px;
+}
+
+.treexplorer-node {
+  background-color: rgb(155, 137, 255, 0.1);
+}
+
+.treexplorer-node:hover {
+  background-color: rgb(155, 137, 255, 0.5);
+}
+
+.treexplorer-node.selected {
+  background-color: rgb(155, 137, 255);
+}
+
+.treexplorer-node:focus-within,
+.treexplorer-node:focus {
+  outline: 5px solid white;
+  outline-offset: -1px;
+}
+
+/* unrelated to treexplorer */
+
+body {
+  background-color: hsl(210, 10%, 10%);
+  color: white;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: grid;
+  grid-template-columns: auto;
+  gap: 0.5rem;
+  max-width: 500px;
+  margin: auto;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+button {
+  border: none;
+  padding: 0.5rem;
+  background-color: rgb(155, 137, 255, 0.5);
+  color: white;
+}
+.container {
+  height: 400px;
+  border: 1px solid rgb(155, 137, 255);
+}
+code {
+  background-color: rgb(155, 137, 255, 0.5);
+  padding-inline: 5px;
+  padding-block: 2.5px;
+}
