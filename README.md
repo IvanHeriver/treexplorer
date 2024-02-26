@@ -9,6 +9,8 @@ In a few words:
 - you can customize the appearance to match the context it is used in
 - you can add listeners for when an item is selected
 
+You can checkout an example at [https://ivanheriver.github.io/treexplorer/](https://ivanheriver.github.io/treexplorer/), which is the example located in the `example` folder of this repo.
+
 # How to install
 
 ## using npm
