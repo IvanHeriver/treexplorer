@@ -1,11 +1,11 @@
 {
   "name": "@ivanheriver/treexplorer",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "a simple library to display a tree such as in a file explorer",
   "main": "dist/bundle.js",
   "scripts": {
     "dev": "rollup -c -w --bundleConfigAsCjs",
-    "build": "rollup -c && shx cp dist/bundle.js example/treexplorer.js"
+    "build": "rollup -c --bundleConfigAsCjs"
   },
   "keywords": [
     "tree",
@@ -18,16 +18,18 @@
     "email": "contact@ihdev.fr",
     "url": "https://ihdev.fr/en"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IvanHeriver/treexplorer.git"
+  },
+  "homepage": "https://ivanheriver.github.io/treexplorer/",
   "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "rollup": "^4.12.0",
-    "shx": "^0.3.4",
+    "rollup-plugin-copy": "^3.5.0",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "rollup-plugin-copy": "^3.5.0"
   }
 }
