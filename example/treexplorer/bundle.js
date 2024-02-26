@@ -340,4 +340,3 @@ function buildNodeContainerDiv(depth) {
 }
 
 export { treexplorer as default };
-//# sourceMappingURL=bundle.js.map
