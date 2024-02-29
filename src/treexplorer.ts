@@ -7,6 +7,10 @@ export interface Treexplorer<A> extends HTMLDivElement {
    * Collapse all nodes in the tree.
    */
   collapseAll: () => void;
+  /**
+   * Add an event listener for when a node is selected
+   * @param callback callback with the selected item object as argument
+   */
   addSelectListener: (callback: (object: A) => void) => void;
 }
 
@@ -18,7 +22,7 @@ export interface Treexplorer<A> extends HTMLDivElement {
  */
 
 /**
- *  @template A - The type of items in the tree.
+ * @template A - The type of items in the tree.
  * @typedef {HTMLDivElement & TreexplorerExtra<A>} Treexplorer<A>
  */
 
