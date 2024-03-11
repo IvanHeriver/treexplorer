@@ -1,11 +1,5 @@
 /****************************/
 /* customizing treexplorer */
-:root {
-  --bg-color: rgba(40, 128, 172, 0.1);
-  --main-color: rgb(40, 128, 172, 0.5);
-  --light-color: rgba(40, 128, 172, 1);
-  --strong-color: rgb(40, 128, 172, 0.1);
-}
 
 .treexplorer-main {
   --indent: 1rem;
