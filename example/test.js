@@ -56,7 +56,7 @@ let treeRoots = generateRandomTree();
 const tx = treexplorer({
   roots: treeRoots,
   getId: (o) => o.id,
-  getChildren: async (o) => o.children,
+  getChildren: (o) => o.children,
   getHTML: treexplorerImageLabelNode(
     (o) => o.label,
     (_) => "./favicon.png"
