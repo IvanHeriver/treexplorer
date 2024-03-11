@@ -1,56 +1,114 @@
+/****************************/
 /* customizing treexplorer */
+:root {
+  --bg-color: rgba(40, 128, 172, 0.1);
+  --main-color: rgb(40, 128, 172, 0.5);
+  --light-color: rgba(40, 128, 172, 1);
+  --strong-color: rgb(40, 128, 172, 0.1);
+}
+
+.treexplorer-main {
+  --indent: 1rem;
+}
+.large-indent > .treexplorer-main {
+  --indent: 2rem;
+}
 
 .treexplorer-main img {
   height: 20px;
 }
 
 .treexplorer-node {
+  border-top: 0.25rem solid transparent;
+  border-bottom: 0.25rem solid transparent;
   background-color: rgb(155, 137, 255, 0.1);
-}
-
-.treexplorer-node:hover {
-  background-color: rgb(155, 137, 255, 0.5);
 }
 
 .treexplorer-node.selected {
   background-color: rgb(155, 137, 255);
 }
 
-.treexplorer-node:focus-within,
-.treexplorer-node:focus {
-  outline: 5px solid white;
-  outline-offset: -1px;
+.treexplorer-node:hover {
+  background-color: rgb(155, 137, 255, 0.5);
 }
 
+.treexplorer-node:focus-within,
+.treexplorer-node:focus {
+  outline: none;
+  border-top: 0.25rem solid white;
+  border-bottom: 0.25rem solid white;
+}
+
+.treexplorer-trunk-line {
+  color: lightblue;
+}
+
+/****************************/
 /* unrelated to treexplorer */
 
 body {
   background-color: hsl(210, 10%, 10%);
   color: white;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 1rem;
+}
+body > * {
+  max-width: 500px;
+  margin-inline: auto;
+}
+.treexplorer-container {
+  border: 1px solid rgb(155, 137, 255);
+  height: 500px;
+  width: 100%;
+  max-width: 500px;
+  width: 100%;
+}
+code {
+  background-color: black;
+  padding-inline: 5px;
+  padding-block: 2.5px;
+}
+
+h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+main {
   display: grid;
   grid-template-columns: auto;
   gap: 0.5rem;
-  max-width: 500px;
-  margin: auto;
-}
-
-.actions {
-  display: flex;
-  gap: 0.5rem;
+  grid-area: main;
+  position: relative;
+  width: 100%;
 }
 button {
   border: none;
-  padding: 0.5rem;
+  padding: 0.25rem;
   background-color: rgb(155, 137, 255, 0.5);
   color: white;
+  cursor: pointer;
+  flex-grow: 1;
 }
-.container {
-  height: 400px;
-  border: 1px solid rgb(155, 137, 255);
+button:hover {
+  background-color: rgb(155, 137, 255);
 }
-code {
-  background-color: rgb(155, 137, 255, 0.5);
-  padding-inline: 5px;
-  padding-block: 2.5px;
+footer {
+  padding-block: 1rem;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.actions-grp {
+  background-color: black;
+  padding: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+.actions-grp h2 {
+  grid-column: 1 / 3;
 }
