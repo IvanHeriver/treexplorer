@@ -3,7 +3,7 @@
   "version": "0.0.3",
   "description": "a simple library to display a tree such as in a file explorer",
   "main": "dist/bundle.js",
-  "types": "dist/treexplorer.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "rollup -c -w --bundleConfigAsCjs",
     "build": "rollup -c --bundleConfigAsCjs"

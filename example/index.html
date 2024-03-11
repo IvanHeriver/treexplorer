@@ -3,26 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <link rel="stylesheet" href="./treexplorer/style.css" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <!-- <link rel="stylesheet" href="./treexplorer/style.css" /> -->
     <link rel="stylesheet" href="./style.css" />
     <script type="module" src="./test.js" defer></script>
     <title>treexplorer - example page</title>
   </head>
   <body>
-    <h1>treexplorer demo</h1>
+    <h1><code>treexplorer</code> demo</h1>
+    <main>
+      <div class="treexplorer-container"></div>
+      <div class="selected-label"></div>
+    </main>
     <div class="actions">
-      <button id="btn-collapse-all">collapse all</button>
-      <button id="btn-indent-toggle">small / large indentation</button>
+      <div class="actions-grp">
+        <h2>Basic actions</h2>
+        <button id="btn-collapse-all">Collapse all</button>
+        <button id="btn-expand-all">Expand all</button>
+        <button id="btn-unselect-all">Unselect all</button>
+      </div>
+      <div class="actions-grp">
+        <h2>Appearance</h2>
+        <button id="btn-indent-toggle">Toggle indentation</button>
+        <button id="btn-custom-html">Use custom HTML</button>
+      </div>
+      <div class="actions-grp">
+        <h2>Mutating tree</h2>
+        <button id="btn-insert-child">Insert child in selected</button>
+        <button id="btn-remove-selected">Remove selected</button>
+        <button id="btn-modify-text">Modify selected item text</button>
+        <button id="btn-make-random-tree">Make random tree</button>
+      </div>
     </div>
-    <div class="container"></div>
-    <div class="selected-label"></div>
-    <div>
-      <span>GitHub:&nbsp;</span
-      ><a href="https://github.com/IvanHeriver/treexplorer"
-        >https://github.com/IvanHeriver/treexplorer</a
-      >
-    </div>
-    <div>Copyright &copy; - 2024 - Ivan Horner</div>
+    <footer>
+      <div>
+        <span>GitHub:&nbsp;</span>
+        <a href="https://github.com/IvanHeriver/treexplorer">
+          https://github.com/IvanHeriver/treexplorer
+        </a>
+      </div>
+      <div>Copyright &copy; - 2024 - Ivan Horner</div>
+    </footer>
   </body>
 </html>

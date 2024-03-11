@@ -5,11 +5,11 @@ import copy from "rollup-plugin-copy";
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
-  input: "src/treexplorer.ts",
+  input: "src/index.ts",
   output: [
     {
       sourcemap: !production,
-      file: "dist/bundle.js",
+      file: "dist/index.js",
       // format: "iife", // browser
       format: "es", // browser
       // format: "cjs", // node
@@ -19,7 +19,7 @@ export default {
     },
     {
       sourcemap: !production,
-      file: "dist/bundle.min.js",
+      file: "dist/index.min.js",
       // format: "iife", // browser
       format: "es", // browser
       // format: "cjs", // node
@@ -38,24 +38,8 @@ export default {
     copy({
       targets: [
         {
-          src: "dist/bundle.js",
+          src: "dist/*",
           dest: "example/treexplorer/",
-          // rename: () => "treexplorer.js",
-        },
-        {
-          src: "dist/bundle.js.map",
-          dest: "example/treexplorer/",
-          // rename: () => "treexplorer.js.map",
-        },
-        {
-          src: "src/treexplorer.css",
-          dest: "dist/",
-          rename: () => "style.css",
-        },
-        {
-          src: "src/treexplorer.css",
-          dest: "example/treexplorer/",
-          rename: () => "style.css",
         },
       ],
       hook: "writeBundle",
