@@ -3,17 +3,16 @@
 A simple tree view explorer for tree-like structured data.
 In a few words:
 
-- each item is a text label with an optional leading icon and it can have children items
+- each item can be any HTML content you like. Defaults (text label, icon + text label) are provided if needed.
 - it supports keybord navigation: tab, arrow keys and enter key
 - it should properly support screenreaders but it hasn't been checked
 - you can customize the appearance to match the context it is used in
 - you can add listeners for when an item is selected
+- you can update the tree any time your data changes
 
 You can checkout an example at [https://ivanheriver.github.io/treexplorer/](https://ivanheriver.github.io/treexplorer/), which is the example located in the `example` folder of this repo.
 
 # How to install
-
-## using npm
 
 Install the library using npm:
 
@@ -21,113 +20,118 @@ Install the library using npm:
 npm install @ivanheriver/treexplorer
 ```
 
-And then you can import the `treexplorer()` function
+And then you can import the `treexplorer()` function:
 
 ```js
-import treexplorer from "@ivanheriver/treexplorer";
+import { treexplorer } from "@ivanheriver/treexplorer";
 ```
 
-You also need to link the CSS file in your HTML head:
+You can also import default node HTML builders:
 
-```html
-<link
-  rel="stylesheet"
-  href="../node_modules/@ivanheriver/treexplorer/style.css"
-/>
+- `treexplorerLabelNode`: a simple text label
+- `treexplorerImageLabelNode`: an image / icon followed by a text label
+
+For example:
+
+```js
+import {
+  treexplorer,
+  treexplorerImageLabelNode,
+} from "@ivanheriver/treexplorer";
 ```
-
-## manual
-
-You can download the `dist` folder and use the `bundle.min.js` using an import statement and `style.css` files located inside by linking it in your HTML file.
 
 # How to use
 
-Make sure you somehow import the css file in your HTML.
+Checkout out the [demo](https://ivanheriver.github.io/treexplorer/) and associated code in the `example` folder for a full example.
 
-Using npm you can import the treexplorer function:
+The treexplorer function requires a config objects with the following structure:
 
-```js
-import treexplorer from "@ivanheriver/treexplorer";
-```
-
-or import it manually (say you put it in a `lib/treexplorer` folder)
-
-```js
-import treexplorer from "./lib/treexplorer/bundle.min.js";
-```
-
-The function must be fed an array of object, hereafter called `item`.
-For any `item` (including any nested item with item), you need to be able to define the next four functions:
-
-- `getLabel(item)` which return a string to display for the item
-- `getIconSrc(item)` which return a string to use in the image icon to display for the item
-- `getId(item)` which return a unique id for the item
-- `async getChildren(item)` which returns null if it is a leaf item or an array if items (the array can be empty). This method must be async.
-
-A basic usage of the library is illustrated below.
-
-```js
-const data = {
-  children: [
-    { label: "label" },
-    { label: "item with children", children: [{ label: "a child" }] },
-  ],
+```ts
+type TreexplorerConfig<T> = {
+  roots: T[];
+  getId: (o: T) => string;
+  getChildren: (o: T) => (T[] | null) | Promise<T[] | null>;
+  getHTML: (o: T) => HTMLElement;
 };
-
-const tx = treexplorer(
-  data,
-  (item) => item.label,
-  (item) => (item.children != null ? "./favicon.png" : ""),
-  (item) => item.label,
-  async (item) => (item.children ? item.children : null)
-);
-
-const container = document.querySelector(".container");
-if (container) {
-  container.appendChild(tx);
-}
-
-tx.addSelectListener((item) => {
-  console.log(item);
-});
 ```
 
-A more complete example can be found in the `example` folder of this repo.
+where `T` is the type of a node in your data structure.
+You need to be able to define 3 functions:
 
-# customize appearance:
+- `getId`: given a node item of type `T` returns a unique identifier for this node
+- `getChildren`: given a node item of type `T` returns either `null` (if it is a leaf node) or an array of `T` objects. It can also be an async function.
+- `getHTML`: fiven a node item of type `T`, returns and HTMLElement to use as the HTML content of the node.
 
-## overwrite CSS rules
+Here is an example where each element of my tree data structured is supposed to have three components: `id`, `label` and `children`.
 
-You can overwrite the appearance by oiverwritting of some classes.
-In particular the `treexplorer-node` class should be modified to match the context it is used in:
+```js
+import {
+  treexplorer,
+  treexplorerImageLabelNode,
+} from "@ivanheriver/treexplorer";
+
+const tx = treexplorer({
+  roots: treeRoots,
+  getId: (o) => o.id,
+  getChildren: (o) => o.children,
+  getHTML: (o) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+    <b>${o.label}</b><code>${o.id.substring(0, 8)}</code>
+    `;
+    div.style.display = "flex";
+    div.style.gap = "1rem";
+    return div;
+  },
+});
+const container = document.querySelector(".treexplorer-container");
+if (container) {
+  container.appendChild(tx.HTML);
+}
+```
+
+# Customizing appearance
+
+Chances are you'd like to modify the appearance of the tree view to match the context it used.
+Some CSS class can be used to modify the appearance:
+
+- `.treexplorer-main`: only to set some CSS variable
+  - `--indent`: indent size
+  - `--children-line-width`: width of the line connecting children
+  - `--arrow-div-width`: width of the arrow of parent nodes
+- `.treexplorer-node`: styling of each node, including
+  - `.treexplorer-node.selected` for selected nodes
+  - `.treexplorer-node:hover`
+  - `.treexplorer-node:focus`
+- `.treexplorer-trunk-line`: to define the `color` of the line connecting children
 
 ```css
+.treexplorer-main {
+  --indent: 1rem;
+}
+
 .treexplorer-node {
-  background-color: rgb(255, 137, 137, 0.1);
+  border-top: 0.25rem solid transparent;
+  border-bottom: 0.25rem solid transparent;
+  background-color: rgb(155, 137, 255, 0.1);
 }
-.treexplorer-node:hover {
-  background-color: rgb(255, 137, 137, 0.5);
-}
+
 .treexplorer-node.selected {
-  background-color: rgb(255, 137, 137);
+  background-color: rgb(155, 137, 255);
 }
+
+.treexplorer-node:hover {
+  background-color: rgb(155, 137, 255, 0.5);
+}
+
+.treexplorer-node:focus-within,
 .treexplorer-node:focus {
-  outline: 1px solid black;
-  outline-offset: -1px;
+  outline: none;
+  border-top: 0.25rem solid white;
+  border-bottom: 0.25rem solid white;
 }
-```
 
-## set custom CSS properties
-
-You can set custom CSS variable to customize the appareance.
-It can be done either on the Treexplorer object (example below) or on a container object (either in js or in your HTML).
-
-```js
-const tx = treexplorer(...);
-tx.style.setProperty("--indent-size", "1rem");
-tx.style.setProperty("--gap-block", "0px");
-tx.style.setProperty("--gap-inline", "0.25rem");
-tx.style.setProperty("--padding", "0.25rem");
-tx.style.setProperty("--trunk-color", "rgb(181, 198, 211)");
-tx.style.setProperty("--trunk-width", "1px");
+.treexplorer-trunk-line {
+  color: lightblue;
+}
 ```
