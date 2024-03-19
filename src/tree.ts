@@ -185,6 +185,15 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
       });
       return tx;
     },
+    expandNode(id: string) {
+      if (_nodes.has(id)) {
+        const node = _nodes.get(id);
+        if (node != null) {
+          toggleExpanded(node, true, false);
+        }
+      }
+      return tx;
+    },
     makeNodeVisible(id: string) {
       if (_nodes.has(id)) {
         const node = _nodes.get(id);

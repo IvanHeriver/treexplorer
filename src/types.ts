@@ -21,6 +21,7 @@ export type Treexplorer<T> = {
   updateNode: (id: string) => Treexplorer<T>;
   collapseAll: () => Treexplorer<T>;
   expandAll: () => Treexplorer<T>;
+  expandNode: (id: string) => Treexplorer<T>;
   makeNodeVisible: (id: string) => Treexplorer<T>;
   unselectAll: () => Treexplorer<T>;
   setSelectedNodeItem: (id: string) => Treexplorer<T>;
