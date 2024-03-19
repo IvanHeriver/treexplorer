@@ -1,8 +1,8 @@
 {
   "name": "@ivanheriver/treexplorer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "a simple library to display a tree such as in a file explorer",
-  "main": "dist/bundle.js",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "rollup -c -w --bundleConfigAsCjs",
