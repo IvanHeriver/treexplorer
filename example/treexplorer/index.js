@@ -441,4 +441,3 @@ function treexplorerImageLabelNode(getLabelText, getImageSrc) {
 }
 
 export { treexplorer, treexplorerImageLabelNode, treexplorerLabelNode };
-//# sourceMappingURL=index.js.map
