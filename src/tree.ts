@@ -32,6 +32,33 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
     }
   }
 
+  function toggleExpanded(
+    node: TXN<T>,
+    expanded?: boolean,
+    recursive?: boolean
+  ): TXN<T> {
+    let _expanded = !node.expanded;
+    if (expanded != undefined) {
+      _expanded = expanded;
+    }
+    node.expanded = _expanded;
+    if (
+      expanded != undefined &&
+      expanded &&
+      recursive != undefined &&
+      recursive
+    ) {
+      // recursion only:
+      // - if expanded is set and is true
+      // - if recursive is set and is true
+      const parent = node.family.parent;
+      if (parent != null) {
+        return toggleExpanded(parent, true, true);
+      }
+    }
+    return node;
+  }
+
   function buildTXN(object: T, parent: TXN<T> | null): TXN<T> {
     const id = _config.getId(object);
     const path = parent === null ? [] : [...parent.path, parent.id];
@@ -89,10 +116,10 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
       node.family.children = [];
       node.family.children = childrenObjects.map((o) => buildTXN(o, node));
       node.HTML.children.innerHTML = "";
-      node.family.children.forEach(async (child) => {
+      for (const child of node.family.children) {
         node.HTML.children.appendChild(child.HTML.container);
-        setTimeout(() => updateTXN(child), 0);
-      });
+        await updateTXN(child);
+      }
 
       if (node.expanded) {
         // node.HTML.arrow.innerHTML = "&#x25BE";
@@ -174,6 +201,22 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
       _nodes.forEach((n) => {
         n.expanded = true;
       });
+      return tx;
+    },
+    makeNodeVisible(id: string) {
+      if (_nodes.has(id)) {
+        const node = _nodes.get(id);
+        if (node != null) {
+          const lastParentNode = toggleExpanded(node, true, true);
+          updateTXN(lastParentNode).then((_) => {
+            node.HTML.container.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+              inline: "nearest",
+            });
+          });
+        }
+      }
       return tx;
     },
     unselectAll() {
