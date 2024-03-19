@@ -5,7 +5,7 @@ export function buildEmptyNode<T>(
   path: string[],
   object: T,
   parent: TXN<T> | null,
-  registerNodeForUpdate: (node: TXN<T>) => void,
+  updateTXN: (node: TXN<T>) => void,
   toggleSelect: (node: TXN<T>, select: boolean) => void
 ): TXN<T> {
   const node: TXN<T> = {
@@ -22,7 +22,7 @@ export function buildEmptyNode<T>(
     expanded: false,
     selected: false,
   };
-  setupNodeListneners(node, registerNodeForUpdate, toggleSelect);
+  setupNodeListneners(node, updateTXN, toggleSelect);
   return node;
 }
 
@@ -120,13 +120,13 @@ export function buildTXN_HTML<T>(id: string): TXN_HTML {
 
 function setupNodeListneners<T>(
   node: TXN<T>,
-  registerNodeForUpdate: (node: TXN<T>) => void,
+  updateTXN: (node: TXN<T>) => void,
   toggleSelect: (node: TXN<T>, select: boolean) => void
 ) {
   node.HTML.item.addEventListener("pointerup", () => {
     node.expanded = !node.expanded;
     toggleSelect(node, true);
-    registerNodeForUpdate(node);
+    updateTXN(node);
   });
   node.HTML.item.addEventListener("keydown", (event) => {
     if (event.key === "ArrowUp") {
@@ -145,21 +145,21 @@ function setupNodeListneners<T>(
           }
         } else {
           node.expanded = true;
-          registerNodeForUpdate(node);
+          updateTXN(node);
         }
       }
     } else if (event.key === "ArrowLeft") {
       event.preventDefault();
       if (node.family.children != null && node.expanded) {
         node.expanded = false;
-        registerNodeForUpdate(node);
+        updateTXN(node);
       } else if (node.family.parent != null) {
         node.family.parent.HTML.item.focus();
       }
     } else if (event.key === "Enter") {
       node.expanded = !node.expanded;
       toggleSelect(node, true);
-      registerNodeForUpdate(node);
+      updateTXN(node);
     }
   });
 }

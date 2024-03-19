@@ -19,10 +19,10 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
     if (node.selected != select) {
       if (_selectedNode) {
         _selectedNode.selected = false;
-        registerNodeForUpdate(_selectedNode);
+        updateTXN(_selectedNode);
       }
       node.selected = select;
-      registerNodeForUpdate(node);
+      updateTXN(node);
     }
     if (select) {
       _selectedNode = node;
@@ -66,36 +66,14 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
     const node =
       existingNode != null
         ? existingNode
-        : buildEmptyNode(
-            id,
-            path,
-            object,
-            parent,
-            registerNodeForUpdate,
-            toggleSelect
-          );
+        : buildEmptyNode(id, path, object, parent, updateTXN, toggleSelect);
     _nodes.set(node.id, node);
     return node;
   }
 
-  const registeredUpdates = new Set<TXN<T>>();
-  let registeredUpdateTimeOut: null | NodeJS.Timeout;
-  function registerNodeForUpdate(node: TXN<T>) {
-    registeredUpdates.add(node);
-    updateRegisteredNodes();
-  }
-  function updateRegisteredNodes() {
-    registeredUpdates.forEach((n) => {
-      updateTXN(n);
-    });
-    registeredUpdates.clear();
-    if (registeredUpdateTimeOut != null) {
-      clearTimeout(registeredUpdateTimeOut);
-    }
-    registeredUpdateTimeOut = setTimeout(updateRegisteredNodes, 0);
-  }
-
   async function updateTXN(node: TXN<T>) {
+    const activeElement = document.activeElement;
+
     // update indentation
     const depth = node.path.length;
     node.HTML.container.style.setProperty("--left-offset", `${depth * 1}`);
@@ -143,6 +121,10 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
 
     // update select
     node.HTML.item.classList.toggle("selected", node.selected);
+
+    if (activeElement != null) {
+      (activeElement as HTMLElement).focus();
+    }
   }
 
   const tx: Treexplorer<T> = {
@@ -172,14 +154,14 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
     },
     update() {
       _roots.forEach((r) => {
-        registerNodeForUpdate(r);
+        updateTXN(r);
       });
       return tx;
     },
     updateNode(id) {
       if (_nodes.has(id)) {
         const node = _nodes.get(id);
-        if (node != null) registerNodeForUpdate(node);
+        if (node != null) updateTXN(node);
       }
       return tx;
     },
