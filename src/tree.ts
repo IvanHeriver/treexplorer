@@ -228,7 +228,10 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
     setSelectedNodeItem(id) {
       if (_nodes.has(id)) {
         const node = _nodes.get(id);
-        if (node != null) toggleSelect(node, true);
+        if (node != null) {
+          toggleSelect(node, true);
+          tx.makeNodeVisible(node.id);
+        }
       }
       return tx;
     },
