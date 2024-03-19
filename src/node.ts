@@ -72,7 +72,9 @@ export function buildTXN_HTML<T>(id: string): TXN_HTML {
 
   // arrow
   const arrow = document.createElement("div");
-  arrow.style.textAlign = "center";
+  arrow.style.display = "flex";
+  arrow.style.alignItems = "center";
+  arrow.style.justifyContent = "center";
 
   // children container
   const childrenContainer = document.createElement("div");
