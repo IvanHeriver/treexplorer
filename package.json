@@ -1,6 +1,6 @@
 {
   "name": "@ivanheriver/treexplorer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "a simple library to display a tree such as in a file explorer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
