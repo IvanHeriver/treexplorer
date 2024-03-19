@@ -389,7 +389,7 @@ function treexplorer(config) {
                 if (node != null) {
                     const lastParentNode = toggleExpanded(node, true, true);
                     updateTXN(lastParentNode).then((_) => {
-                        node.HTML.container.scrollIntoView({
+                        node.HTML.item.scrollIntoView({
                             behavior: "smooth",
                             block: "center",
                             inline: "nearest",

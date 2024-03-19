@@ -53,7 +53,7 @@ function generateRandomTree(n = 5, depth = 10, p = 0.5) {
 function getAllTreeItems(treeItems) {
   return treeItems.map(item=>{
     if (item.children !=null) {
-      return getAllTreeItems(item.children)
+      return [item, ...getAllTreeItems(item.children)]
     } else {
       return [item];
     }
@@ -96,10 +96,16 @@ const expandAllButton = document.getElementById("btn-expand-all");
 expandAllButton.addEventListener("click", (_) => {
   tx.expandAll().update();
 });
-const selectRandomNodeButton = document.getElementById("btn-select-random");
-selectRandomNodeButton.addEventListener("click", (_) => {
+const selectRandomLeafNodeButton = document.getElementById("btn-select-random-leaf");
+selectRandomLeafNodeButton.addEventListener("click", (_) => {
   const allLeafNodes = getAllTreeItems(treeRoots).filter(n=>n.children == null);
   const randomNode = allLeafNodes[Math.floor(Math.random() * allLeafNodes.length)]
+  tx.setSelectedNodeItem(randomNode.id).makeNodeVisible(randomNode.id)
+});
+const selectRandomContainerNodeButton = document.getElementById("btn-select-random-container");
+selectRandomContainerNodeButton.addEventListener("click", (_) => {
+  const allContainerNodes = getAllTreeItems(treeRoots).filter(n=>n.children != null);
+  const randomNode = allContainerNodes[Math.floor(Math.random() * allContainerNodes.length)]
   tx.setSelectedNodeItem(randomNode.id).makeNodeVisible(randomNode.id)
 });
 
