@@ -81,7 +81,9 @@ function buildTXN_HTML(id) {
     const itemContent = document.createElement("div");
     // arrow
     const arrow = document.createElement("div");
-    arrow.style.textAlign = "center";
+    arrow.style.display = "flex";
+    arrow.style.alignItems = "center";
+    arrow.style.justifyContent = "center";
     // children container
     const childrenContainer = document.createElement("div");
     childrenContainer.style.position = "relative";
@@ -229,6 +231,26 @@ function treexplorer(config) {
             });
         }
     }
+    function toggleExpanded(node, expanded, recursive) {
+        let _expanded = !node.expanded;
+        if (expanded != undefined) {
+            _expanded = expanded;
+        }
+        node.expanded = _expanded;
+        if (expanded != undefined &&
+            expanded &&
+            recursive != undefined &&
+            recursive) {
+            // recursion only:
+            // - if expanded is set and is true
+            // - if recursive is set and is true
+            const parent = node.family.parent;
+            if (parent != null) {
+                return toggleExpanded(parent, true, true);
+            }
+        }
+        return node;
+    }
     function buildTXN(object, parent) {
         const id = _config.getId(object);
         const path = parent === null ? [] : [...parent.path, parent.id];
@@ -278,10 +300,10 @@ function treexplorer(config) {
                 node.family.children = [];
                 node.family.children = childrenObjects.map((o) => buildTXN(o, node));
                 node.HTML.children.innerHTML = "";
-                node.family.children.forEach((child) => __awaiter(this, void 0, void 0, function* () {
+                for (const child of node.family.children) {
                     node.HTML.children.appendChild(child.HTML.container);
-                    setTimeout(() => updateTXN(child), 0);
-                }));
+                    yield updateTXN(child);
+                }
                 if (node.expanded) {
                     // node.HTML.arrow.innerHTML = "&#x25BE";
                     node.HTML.arrow.innerHTML = "&#11167;";
@@ -364,6 +386,22 @@ function treexplorer(config) {
             });
             return tx;
         },
+        makeNodeVisible(id) {
+            if (_nodes.has(id)) {
+                const node = _nodes.get(id);
+                if (node != null) {
+                    const lastParentNode = toggleExpanded(node, true, true);
+                    updateTXN(lastParentNode).then((_) => {
+                        node.HTML.container.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                            inline: "nearest",
+                        });
+                    });
+                }
+            }
+            return tx;
+        },
         unselectAll() {
             if (_selectedNode) {
                 toggleSelect(_selectedNode, false);
@@ -373,8 +411,10 @@ function treexplorer(config) {
         setSelectedNodeItem(id) {
             if (_nodes.has(id)) {
                 const node = _nodes.get(id);
-                if (node != null)
+                if (node != null) {
                     toggleSelect(node, true);
+                    tx.makeNodeVisible(node.id);
+                }
             }
             return tx;
         },
@@ -441,3 +481,4 @@ function treexplorerImageLabelNode(getLabelText, getImageSrc) {
 }
 
 export { treexplorer, treexplorerImageLabelNode, treexplorerLabelNode };
+//# sourceMappingURL=index.js.map

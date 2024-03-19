@@ -50,6 +50,16 @@ function generateRandomTree(n = 5, depth = 10, p = 0.5) {
   return Array.from({ length: n }, () => generateRandomTreeItem(depth, p));
 }
 
+function getAllTreeItems(treeItems) {
+  return treeItems.map(item=>{
+    if (item.children !=null) {
+      return getAllTreeItems(item.children)
+    } else {
+      return [item];
+    }
+  }).flat();
+}
+
 let treeRoots = generateRandomTree();
 
 // build the Treexplorer object and append it the dom
@@ -77,7 +87,7 @@ tx.addSelectListener((o) => {
   `;
 });
 
-// collapsing/expanding all nodes
+// collapsing/expanding nodes
 const collapseAllButton = document.getElementById("btn-collapse-all");
 collapseAllButton.addEventListener("click", (_) => {
   tx.collapseAll().update();
@@ -85,6 +95,12 @@ collapseAllButton.addEventListener("click", (_) => {
 const expandAllButton = document.getElementById("btn-expand-all");
 expandAllButton.addEventListener("click", (_) => {
   tx.expandAll().update();
+});
+const selectRandomNodeButton = document.getElementById("btn-select-random");
+selectRandomNodeButton.addEventListener("click", (_) => {
+  const allLeafNodes = getAllTreeItems(treeRoots).filter(n=>n.children == null);
+  const randomNode = allLeafNodes[Math.floor(Math.random() * allLeafNodes.length)]
+  tx.setSelectedNodeItem(randomNode.id).makeNodeVisible(randomNode.id)
 });
 
 // toggling indentation width using a css class
@@ -152,6 +168,7 @@ customHTMLButton.addEventListener("click", (_) => {
     `;
     div.style.display = "flex";
     div.style.gap = "1rem";
+    div.style.padding = "1rem";
     return div;
   }).update();
 });
