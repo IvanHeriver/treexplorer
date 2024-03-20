@@ -198,14 +198,23 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
       if (_nodes.has(id)) {
         const node = _nodes.get(id);
         if (node != null) {
-          const lastParentNode = toggleExpanded(node, true, true);
-          updateTXN(lastParentNode).then((_) => {
+          const parentNode = node.family.parent;
+          if (parentNode != null) {
+            const lastParentNode = toggleExpanded(parentNode, true, true);
+            updateTXN(lastParentNode).then((_) => {
+              node.HTML.item.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+                inline: "nearest",
+              });
+            });
+          } else {
             node.HTML.item.scrollIntoView({
               behavior: "smooth",
               block: "center",
               inline: "nearest",
             });
-          });
+          }
         }
       }
       return tx;

@@ -27,7 +27,7 @@ export type Treexplorer<T> = {
   setSelectedNodeItem: (id: string) => Treexplorer<T>;
   getNodeItem: (id: string) => T | null;
   getNodeItemFamily: (id: string) => null | ItemFamily<T>;
-  getSelectedNodeItem: (id: string) => T | null;
+  getSelectedNodeItem: () => T | null;
 };
 
 export type TreexplorerConfig<T> = {
