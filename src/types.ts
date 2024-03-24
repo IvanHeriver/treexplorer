@@ -9,7 +9,7 @@ export type ItemFamily<T> = {
 
 export type Treexplorer<T> = {
   HTML: HTMLElement;
-  setRoots: (roots: T[]) => Treexplorer<T>;
+  setRoots: (roots: T[] | T) => Treexplorer<T>;
   setGetId: (getId: (o: T) => string) => Treexplorer<T>;
   setGetHTML: (getHTML: (o: T) => HTMLElement) => Treexplorer<T>;
   setGetChildren: (
@@ -31,7 +31,7 @@ export type Treexplorer<T> = {
 };
 
 export type TreexplorerConfig<T> = {
-  roots: T[];
+  roots: T[] | T;
   getId: (o: T) => string;
   getChildren: (o: T) => (T[] | null) | Promise<T[] | null>;
   getHTML: (o: T) => HTMLElement;

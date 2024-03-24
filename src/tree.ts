@@ -82,12 +82,16 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
     const activeElement = document.activeElement;
 
     // update interactivity
+    node.HTML.item.classList.toggle(
+      "non-interactive",
+      !_config.getIsInteractive(node.object)
+    );
     if (_config.getIsInteractive(node.object)) {
       node.HTML.item.tabIndex = 1;
       node.HTML.item.addEventListener("click", handleItemClicked);
       node.HTML.item.addEventListener("keydown", handleItemKeyDown);
     } else {
-      node.HTML.item.tabIndex = 0;
+      node.HTML.item.tabIndex = -1;
       node.HTML.item.removeEventListener("click", handleItemClicked);
       node.HTML.item.removeEventListener("keydown", handleItemKeyDown);
     }
