@@ -11,9 +11,9 @@ import type { TX, TXN, TXSelectListener, TXConfig, TXConfig_ } from "./types";
 
 export function treexplorer<T>(config: TXConfig<T>): TX<T> {
   const _config: TXConfig_<T> = {
-    getChildren: (o: T) => null,
+    getChildren: (_) => null,
     getHTML: treexplorerLabelNode((o: T) => _config.getId(o)),
-    getIsInteractive: (o: T) => true,
+    getIsInteractive: (_) => true,
     ...config,
   };
   const _roots: TXN<T>[] = [];
