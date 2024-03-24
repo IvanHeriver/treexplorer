@@ -204,6 +204,9 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
       _config.roots = roots;
       _roots.length = 0;
       tx.HTML.innerHTML = "";
+      if (!Array.isArray(_config.roots)) {
+        _config.roots = [_config.roots];
+      }
       _config.roots.forEach((r) => {
         const node = buildTXN(r, null);
         _roots.push(node);
@@ -339,7 +342,7 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
   tx.setGetId(_config.getId);
   tx.setGetChildren(_config.getChildren);
   tx.setGetHTML(_config.getHTML);
-  tx.setRoots(_config.roots);
+  tx.setRoots(Array.isArray(_config.roots) ? _config.roots : [_config.roots]);
   tx.update();
   return tx;
 }
