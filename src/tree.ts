@@ -7,16 +7,10 @@ import {
   focusPrevious,
 } from "./node";
 import { treexplorerLabelNode } from "./treeNodes";
-import type {
-  Treexplorer,
-  TXN,
-  SelectListener,
-  TreexplorerConfig,
-  TreexplorerConfig_,
-} from "./types";
+import type { TX, TXN, TXSelectListener, TXConfig, TXConfig_ } from "./types";
 
-export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
-  const _config: TreexplorerConfig_<T> = {
+export function treexplorer<T>(config: TXConfig<T>): TX<T> {
+  const _config: TXConfig_<T> = {
     getChildren: (o: T) => null,
     getHTML: treexplorerLabelNode((o: T) => _config.getId(o)),
     getIsInteractive: (o: T) => true,
@@ -26,7 +20,7 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
   const _nodes: Map<string, TXN<T>> = new Map();
 
   let _selectedNode: TXN<T> | null = null;
-  let _selectListeners: SelectListener<T>[] = [];
+  let _selectListeners: TXSelectListener<T>[] = [];
 
   function toggleSelect(node: TXN<T>, select?: boolean) {
     select = select === undefined ? !node.selected : select;
@@ -205,7 +199,7 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
     }
   }
 
-  const tx: Treexplorer<T> = {
+  const tx: TX<T> = {
     HTML: buildTreexplorerHTML(),
     setRoots: (roots) => {
       _config.roots = roots;
