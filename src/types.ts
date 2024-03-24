@@ -25,6 +25,7 @@ export type TX<T> = {
   makeNodeVisible: (id: string) => TX<T>;
   unselectAll: () => TX<T>;
   setSelectedNodeItem: (id: string) => TX<T>;
+  toggleRootsVisibility: (visible: boolean) => TX<T>;
   getNodeItem: (id: string) => T | null;
   getNodeItemFamily: (id: string) => null | TXItemFamily<T>;
   getSelectedNodeItem: () => T | null;
@@ -36,6 +37,7 @@ export type TXConfig<T> = {
   getChildren?: (o: T) => (T[] | null) | Promise<T[] | null>;
   getHTML?: (o: T) => HTMLElement;
   getIsInteractive?: (o: T) => boolean;
+  hideRoots?: boolean;
 };
 
 export type TXConfig_<T> = {
@@ -44,6 +46,7 @@ export type TXConfig_<T> = {
   getChildren: (o: T) => (T[] | null) | Promise<T[] | null>;
   getHTML: (o: T) => HTMLElement;
   getIsInteractive: (o: T) => boolean;
+  hideRoots: boolean;
 };
 
 export type TXN<T> = {

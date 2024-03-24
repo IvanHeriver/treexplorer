@@ -14,6 +14,7 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     getChildren: (_) => null,
     getHTML: treexplorerLabelNode((o: T) => _config.getId(o)),
     getIsInteractive: (_) => true,
+    hideRoots: false,
     ...config,
   };
   const _roots: TXN<T>[] = [];
@@ -21,6 +22,8 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
 
   let _selectedNode: TXN<T> | null = null;
   let _selectListeners: TXSelectListener<T>[] = [];
+
+  let _visibilityOffset: number = 0;
 
   function toggleSelect(node: TXN<T>, select?: boolean) {
     select = select === undefined ? !node.selected : select;
@@ -98,9 +101,16 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     }
 
     // update indentation
-    const depth = node.path.length;
+    const depth = node.path.length - _visibilityOffset;
     node.HTML.container.style.setProperty("--left-offset", `${depth * 1}`);
     node.HTML.item.ariaLevel = `${depth}`;
+
+    // hide if depth is below zero
+    if (depth < 0) {
+      node.HTML.item.style.display = "none";
+    } else {
+      node.HTML.item.style.display = "grid";
+    }
 
     // update html
     node.HTML.itemContent.innerHTML = "";
@@ -310,6 +320,16 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       }
       return tx;
     },
+    toggleRootsVisibility(visible) {
+      _config.hideRoots = !visible;
+      _visibilityOffset = visible ? 0 : 1;
+      _nodes.forEach((n) => {
+        if (n.path.length <= _visibilityOffset) {
+          n.expanded = true;
+        }
+      });
+      return tx;
+    },
     getNodeItem(id) {
       const node = _nodes.get(id);
       if (node != null) return node.object;
@@ -344,6 +364,7 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
   tx.setGetChildren(_config.getChildren);
   tx.setGetHTML(_config.getHTML);
   tx.setRoots(Array.isArray(_config.roots) ? _config.roots : [_config.roots]);
+  tx.toggleRootsVisibility(!_config.hideRoots);
   tx.update();
   return tx;
 }
