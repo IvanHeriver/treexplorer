@@ -6,15 +6,22 @@ import {
   focusNext,
   focusPrevious,
 } from "./node";
+import { treexplorerLabelNode } from "./treeNodes";
 import type {
   Treexplorer,
   TXN,
   SelectListener,
   TreexplorerConfig,
+  TreexplorerConfig_,
 } from "./types";
 
 export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
-  const _config: TreexplorerConfig<T> = { ...config };
+  const _config: TreexplorerConfig_<T> = {
+    getChildren: (o: T) => null,
+    getHTML: treexplorerLabelNode((o: T) => _config.getId(o)),
+    getIsInteractive: (o: T) => true,
+    ...config,
+  };
   const _roots: TXN<T>[] = [];
   const _nodes: Map<string, TXN<T>> = new Map();
 
