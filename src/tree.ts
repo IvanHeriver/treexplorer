@@ -1,4 +1,11 @@
-import { buildEmptyNode, buildTreexplorerHTML } from "./node";
+import {
+  buildEmptyNode,
+  buildTreexplorerHTML,
+  collapseOfFocusParent,
+  expandOrFocusChild,
+  focusNext,
+  focusPrevious,
+} from "./node";
 import type {
   Treexplorer,
   TXN,
@@ -66,7 +73,7 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
     const node =
       existingNode != null
         ? existingNode
-        : buildEmptyNode(id, path, object, parent, updateTXN, toggleSelect);
+        : buildEmptyNode(id, path, object, parent);
     _nodes.set(node.id, node);
     return node;
   }
@@ -74,10 +81,22 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
   async function updateTXN(node: TXN<T>) {
     const activeElement = document.activeElement;
 
+    // update interactivity
+    if (_config.getIsInteractive(node.object)) {
+      node.HTML.item.tabIndex = 1;
+      node.HTML.item.addEventListener("click", handleItemClicked);
+      node.HTML.item.addEventListener("keydown", handleItemKeyDown);
+    } else {
+      node.HTML.item.tabIndex = 0;
+      node.HTML.item.removeEventListener("click", handleItemClicked);
+      node.HTML.item.removeEventListener("keydown", handleItemKeyDown);
+    }
+
     // update indentation
     const depth = node.path.length;
     node.HTML.container.style.setProperty("--left-offset", `${depth * 1}`);
     node.HTML.item.ariaLevel = `${depth}`;
+
     // update html
     node.HTML.itemContent.innerHTML = "";
     node.HTML.itemContent.appendChild(_config.getHTML(node.object));
@@ -124,6 +143,54 @@ export function treexplorer<T>(config: TreexplorerConfig<T>): Treexplorer<T> {
 
     if (activeElement != null) {
       (activeElement as HTMLElement).focus();
+    }
+  }
+
+  function handleItemClicked(e: PointerEvent) {
+    const targetElement = e.target as HTMLDivElement;
+    const nodeElement = targetElement.closest(".treexplorer-node");
+    if (nodeElement == null) {
+      return;
+    }
+    const node = _nodes.get(nodeElement.id);
+    if (node == null) {
+      return;
+    }
+    node.expanded = !node.expanded;
+    toggleSelect(node, true);
+    updateTXN(node);
+  }
+
+  function handleItemKeyDown(e: KeyboardEvent) {
+    const targetElement = e.target as HTMLDivElement;
+    const nodeElement = targetElement.closest(".treexplorer-node");
+    if (nodeElement == null) {
+      return;
+    }
+    const node = _nodes.get(nodeElement.id);
+    if (node == null) {
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      focusPrevious(node);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      focusNext(node);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      if (expandOrFocusChild(node)) {
+        updateTXN(node);
+      }
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      if (collapseOfFocusParent(node)) {
+        updateTXN(node);
+      }
+    } else if (e.key === "Enter") {
+      node.expanded = !node.expanded;
+      toggleSelect(node, true);
+      updateTXN(node);
     }
   }
 

@@ -4,9 +4,7 @@ export function buildEmptyNode<T>(
   id: string,
   path: string[],
   object: T,
-  parent: TXN<T> | null,
-  updateTXN: (node: TXN<T>) => void,
-  toggleSelect: (node: TXN<T>, select: boolean) => void
+  parent: TXN<T> | null
 ): TXN<T> {
   const node: TXN<T> = {
     id,
@@ -22,7 +20,6 @@ export function buildEmptyNode<T>(
     expanded: false,
     selected: false,
   };
-  setupNodeListneners(node, updateTXN, toggleSelect);
   return node;
 }
 
@@ -47,24 +44,21 @@ export function buildTreexplorerHTML(): HTMLElement {
   return div;
 }
 
-export function buildTXN_HTML<T>(id: string): TXN_HTML {
-  const indentSize = 2;
-  const childrenLineWidthPx = 2;
-
+export function buildTXN_HTML(id: string): TXN_HTML {
   // main container
   const nodeContainer = document.createElement("div");
   nodeContainer.style.userSelect = "none";
 
   // item (stylizable)
   const item = document.createElement("div");
+  item.id = id;
   item.classList.add("treexplorer-node");
-  item.tabIndex = 1;
   item.style.cursor = "pointer";
   item.style.display = "grid";
   item.style.gridTemplateColumns = "var(--arrow-div-width-2) auto";
   item.style.paddingLeft = "calc(var(--left-offset) * var(--indent-2))";
   item.role = "treeitem";
-  item.setAttribute("aria-owns", id);
+  item.setAttribute("aria-owns", `children_${id}`);
   // item.ariaLabel = "" // don't know how to make that generic
 
   // item content (customizable)
@@ -84,7 +78,7 @@ export function buildTXN_HTML<T>(id: string): TXN_HTML {
 
   // children
   const children = document.createElement("div");
-  children.id = id;
+  children.id = `children_${id}`;
   children.role = "group";
 
   // children line
@@ -118,50 +112,29 @@ export function buildTXN_HTML<T>(id: string): TXN_HTML {
   };
 }
 
-function setupNodeListneners<T>(
-  node: TXN<T>,
-  updateTXN: (node: TXN<T>) => void,
-  toggleSelect: (node: TXN<T>, select: boolean) => void
-) {
-  node.HTML.item.addEventListener("pointerup", () => {
-    node.expanded = !node.expanded;
-    toggleSelect(node, true);
-    updateTXN(node);
-  });
-  node.HTML.item.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowUp") {
-      event.preventDefault();
-      focusPrevious(node);
-    } else if (event.key === "ArrowDown") {
-      event.preventDefault();
-      focusNext(node);
-    } else if (event.key === "ArrowRight") {
-      event.preventDefault();
-      if (node.family.children != null) {
-        if (node.expanded) {
-          if (node.family.children.length > 0) {
-            const rightNode = node.family.children[0];
-            rightNode.HTML.item.focus();
-          }
-        } else {
-          node.expanded = true;
-          updateTXN(node);
-        }
+export function expandOrFocusChild<T>(node: TXN<T>): boolean {
+  if (node.family.children != null) {
+    if (node.expanded) {
+      if (node.family.children.length > 0) {
+        const rightNode = node.family.children[0];
+        rightNode.HTML.item.focus();
       }
-    } else if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      if (node.family.children != null && node.expanded) {
-        node.expanded = false;
-        updateTXN(node);
-      } else if (node.family.parent != null) {
-        node.family.parent.HTML.item.focus();
-      }
-    } else if (event.key === "Enter") {
-      node.expanded = !node.expanded;
-      toggleSelect(node, true);
-      updateTXN(node);
+    } else {
+      node.expanded = true;
+      return true;
     }
-  });
+  }
+  return false;
+}
+
+export function collapseOfFocusParent<T>(node: TXN<T>): boolean {
+  if (node.family.children != null && node.expanded) {
+    node.expanded = false;
+    return true;
+  } else if (node.family.parent != null) {
+    node.family.parent.HTML.item.focus();
+  }
+  return false;
 }
 
 function focusLast<T>(node: TXN<T>) {
@@ -176,7 +149,7 @@ function focusLast<T>(node: TXN<T>) {
     node.HTML.item.focus();
   }
 }
-function focusPrevious<T>(node: TXN<T>) {
+export function focusPrevious<T>(node: TXN<T>) {
   if (node.family.beforeSiblings.length > 0) {
     const previousNode =
       node.family.beforeSiblings[node.family.beforeSiblings.length - 1];
@@ -187,7 +160,7 @@ function focusPrevious<T>(node: TXN<T>) {
     }
   }
 }
-function focusNext<T>(node: TXN<T>) {
+export function focusNext<T>(node: TXN<T>) {
   if (
     node.expanded &&
     node.family.children != null &&

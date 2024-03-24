@@ -35,6 +35,7 @@ export type TreexplorerConfig<T> = {
   getId: (o: T) => string;
   getChildren: (o: T) => (T[] | null) | Promise<T[] | null>;
   getHTML: (o: T) => HTMLElement;
+  getIsInteractive: (o: T) => boolean;
 };
 
 export type TXN<T> = {
