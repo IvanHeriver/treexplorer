@@ -26,7 +26,6 @@
   background-color: rgb(155, 137, 255, 0.5);
 }
 
-.treexplorer-node:focus-within,
 .treexplorer-node:focus {
   outline: none;
   border-top: 0.25rem solid white;

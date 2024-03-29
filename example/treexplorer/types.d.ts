@@ -1,36 +1,49 @@
-export type SelectListener<T> = (o: T) => void;
-export type ItemFamily<T> = {
+export type TXSelectListener<T> = (o: T) => void;
+export type TXItemFamily<T> = {
     item: T;
     parent: T | null;
     prevSiblings: T[];
     nextSiblings: T[];
     children: T[] | null;
 };
-export type Treexplorer<T> = {
+export type TX<T> = {
     HTML: HTMLElement;
-    setRoots: (roots: T[]) => Treexplorer<T>;
-    setGetId: (getId: (o: T) => string) => Treexplorer<T>;
-    setGetHTML: (getHTML: (o: T) => HTMLElement) => Treexplorer<T>;
-    setGetChildren: (getChildren: (o: T) => (T[] | null) | Promise<T[] | null>) => Treexplorer<T>;
-    addSelectListener: (onSelect: SelectListener<T>) => Treexplorer<T>;
-    removeSelectListener: (onSelect: SelectListener<T>) => Treexplorer<T>;
-    update: () => Treexplorer<T>;
-    updateNode: (id: string) => Treexplorer<T>;
-    collapseAll: () => Treexplorer<T>;
-    expandAll: () => Treexplorer<T>;
-    expandNode: (id: string) => Treexplorer<T>;
-    makeNodeVisible: (id: string) => Treexplorer<T>;
-    unselectAll: () => Treexplorer<T>;
-    setSelectedNodeItem: (id: string) => Treexplorer<T>;
+    setRoots: (roots: T[] | T) => TX<T>;
+    setGetId: (getId: (o: T) => string) => TX<T>;
+    setGetHTML: (getHTML: (o: T) => HTMLElement) => TX<T>;
+    setGetChildren: (getChildren: (o: T) => (T[] | null) | Promise<T[] | null>) => TX<T>;
+    addSelectListener: (onSelect: TXSelectListener<T>) => TX<T>;
+    removeSelectListener: (onSelect: TXSelectListener<T>) => TX<T>;
+    update: () => TX<T>;
+    updateNode: (id: string) => TX<T>;
+    collapseAll: () => TX<T>;
+    expandAll: () => TX<T>;
+    collapseNode: (id: string) => TX<T>;
+    expandNode: (id: string) => TX<T>;
+    makeNodeVisible: (id: string) => TX<T>;
+    unselectAll: () => TX<T>;
+    setSelectedNodeItem: (id: string) => TX<T>;
+    toggleRootsVisibility: (visible: boolean) => TX<T>;
+    getRootItems: () => T[];
     getNodeItem: (id: string) => T | null;
-    getNodeItemFamily: (id: string) => null | ItemFamily<T>;
-    getSelectedNodeItem: (id: string) => T | null;
+    getNodeItemFamily: (id: string) => null | TXItemFamily<T>;
+    getSelectedNodeItem: () => T | null;
 };
-export type TreexplorerConfig<T> = {
-    roots: T[];
+export type TXConfig<T> = {
+    roots: T[] | T;
+    getId: (o: T) => string;
+    getChildren?: (o: T) => (T[] | null) | Promise<T[] | null>;
+    getHTML?: (o: T) => HTMLElement;
+    getIsInteractive?: (o: T) => boolean;
+    hideRoots?: boolean;
+};
+export type TXConfig_<T> = {
+    roots: T[] | T;
     getId: (o: T) => string;
     getChildren: (o: T) => (T[] | null) | Promise<T[] | null>;
     getHTML: (o: T) => HTMLElement;
+    getIsInteractive: (o: T) => boolean;
+    hideRoots: boolean;
 };
 export type TXN<T> = {
     id: string;

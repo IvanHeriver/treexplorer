@@ -71,6 +71,7 @@ const tx = treexplorer({
     (o) => o.label,
     (_) => "./favicon.png"
   ),
+  hideRoots: true
 });
 const container = document.querySelector(".treexplorer-container");
 if (container) {

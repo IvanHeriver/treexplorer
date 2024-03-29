@@ -30,7 +30,7 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };
 
-function buildEmptyNode(id, path, object, parent, updateTXN, toggleSelect) {
+function buildEmptyNode(id, path, object, parent) {
     const node = {
         id,
         path,
@@ -45,7 +45,6 @@ function buildEmptyNode(id, path, object, parent, updateTXN, toggleSelect) {
         expanded: false,
         selected: false,
     };
-    setupNodeListneners(node, updateTXN, toggleSelect);
     return node;
 }
 function buildTreexplorerHTML() {
@@ -68,14 +67,14 @@ function buildTXN_HTML(id) {
     nodeContainer.style.userSelect = "none";
     // item (stylizable)
     const item = document.createElement("div");
+    item.id = id;
     item.classList.add("treexplorer-node");
-    item.tabIndex = 1;
     item.style.cursor = "pointer";
     item.style.display = "grid";
     item.style.gridTemplateColumns = "var(--arrow-div-width-2) auto";
     item.style.paddingLeft = "calc(var(--left-offset) * var(--indent-2))";
     item.role = "treeitem";
-    item.setAttribute("aria-owns", id);
+    item.setAttribute("aria-owns", `children_${id}`);
     // item.ariaLabel = "" // don't know how to make that generic
     // item content (customizable)
     const itemContent = document.createElement("div");
@@ -91,7 +90,7 @@ function buildTXN_HTML(id) {
     childrenContainer.style.gridTemplateColumns = "1fr";
     // children
     const children = document.createElement("div");
-    children.id = id;
+    children.id = `children_${id}`;
     children.role = "group";
     // children line
     const childrenLine = document.createElement("div");
@@ -121,52 +120,30 @@ function buildTXN_HTML(id) {
         children: children,
     };
 }
-function setupNodeListneners(node, updateTXN, toggleSelect) {
-    node.HTML.item.addEventListener("pointerup", () => {
-        node.expanded = !node.expanded;
-        toggleSelect(node, true);
-        updateTXN(node);
-    });
-    node.HTML.item.addEventListener("keydown", (event) => {
-        if (event.key === "ArrowUp") {
-            event.preventDefault();
-            focusPrevious(node);
-        }
-        else if (event.key === "ArrowDown") {
-            event.preventDefault();
-            focusNext(node);
-        }
-        else if (event.key === "ArrowRight") {
-            event.preventDefault();
-            if (node.family.children != null) {
-                if (node.expanded) {
-                    if (node.family.children.length > 0) {
-                        const rightNode = node.family.children[0];
-                        rightNode.HTML.item.focus();
-                    }
-                }
-                else {
-                    node.expanded = true;
-                    updateTXN(node);
-                }
+function expandOrFocusChild(node) {
+    if (node.family.children != null) {
+        if (node.expanded) {
+            if (node.family.children.length > 0) {
+                const rightNode = node.family.children[0];
+                rightNode.HTML.item.focus();
             }
         }
-        else if (event.key === "ArrowLeft") {
-            event.preventDefault();
-            if (node.family.children != null && node.expanded) {
-                node.expanded = false;
-                updateTXN(node);
-            }
-            else if (node.family.parent != null) {
-                node.family.parent.HTML.item.focus();
-            }
+        else {
+            node.expanded = true;
+            return true;
         }
-        else if (event.key === "Enter") {
-            node.expanded = !node.expanded;
-            toggleSelect(node, true);
-            updateTXN(node);
-        }
-    });
+    }
+    return false;
+}
+function collapseOfFocusParent(node) {
+    if (node.family.children != null && node.expanded) {
+        node.expanded = false;
+        return true;
+    }
+    else if (node.family.parent != null) {
+        node.family.parent.HTML.item.focus();
+    }
+    return false;
 }
 function focusLast(node) {
     if (node.expanded &&
@@ -208,12 +185,37 @@ function focusNext(node) {
     }
 }
 
+function treexplorerLabelNode(getLabelText) {
+    return (o) => {
+        const div = document.createElement("div");
+        div.style.whiteSpace = "nowrap";
+        div.textContent = getLabelText(o);
+        return div;
+    };
+}
+function treexplorerImageLabelNode(getLabelText, getImageSrc) {
+    return (o) => {
+        const div = document.createElement("div");
+        div.style.display = "flex";
+        div.style.gap = "0.5em";
+        const img = document.createElement("img");
+        img.src = getImageSrc(o);
+        const txt = document.createElement("span");
+        txt.style.whiteSpace = "nowrap";
+        txt.textContent = getLabelText(o);
+        div.appendChild(img);
+        div.appendChild(txt);
+        return div;
+    };
+}
+
 function treexplorer(config) {
-    const _config = Object.assign({}, config);
+    const _config = Object.assign({ getChildren: (_) => null, getHTML: treexplorerLabelNode((o) => _config.getId(o)), getIsInteractive: (_) => true, hideRoots: false }, config);
     const _roots = [];
     const _nodes = new Map();
     let _selectedNode = null;
     let _selectListeners = [];
+    let _visibilityOffset = 0;
     function toggleSelect(node, select) {
         select = select === undefined ? !node.selected : select;
         if (node.selected != select) {
@@ -257,17 +259,36 @@ function treexplorer(config) {
         const existingNode = _nodes.get(id);
         const node = existingNode != null
             ? existingNode
-            : buildEmptyNode(id, path, object, parent, updateTXN, toggleSelect);
+            : buildEmptyNode(id, path, object, parent);
         _nodes.set(node.id, node);
         return node;
     }
     function updateTXN(node) {
         return __awaiter(this, void 0, void 0, function* () {
             const activeElement = document.activeElement;
+            // update interactivity
+            node.HTML.item.classList.toggle("non-interactive", !_config.getIsInteractive(node.object));
+            if (_config.getIsInteractive(node.object)) {
+                node.HTML.item.tabIndex = 1;
+                node.HTML.item.addEventListener("click", handleItemClicked);
+                node.HTML.item.addEventListener("keydown", handleItemKeyDown);
+            }
+            else {
+                node.HTML.item.tabIndex = -1;
+                node.HTML.item.removeEventListener("click", handleItemClicked);
+                node.HTML.item.removeEventListener("keydown", handleItemKeyDown);
+            }
             // update indentation
-            const depth = node.path.length;
+            const depth = node.path.length - _visibilityOffset;
             node.HTML.container.style.setProperty("--left-offset", `${depth * 1}`);
             node.HTML.item.ariaLevel = `${depth}`;
+            // hide if depth is below zero
+            if (depth < 0) {
+                node.HTML.item.style.display = "none";
+            }
+            else {
+                node.HTML.item.style.display = "grid";
+            }
             // update html
             node.HTML.itemContent.innerHTML = "";
             node.HTML.itemContent.appendChild(_config.getHTML(node.object));
@@ -315,12 +336,65 @@ function treexplorer(config) {
             }
         });
     }
+    function handleItemClicked(e) {
+        const targetElement = e.target;
+        const nodeElement = targetElement.closest(".treexplorer-node");
+        if (nodeElement == null) {
+            return;
+        }
+        const node = _nodes.get(nodeElement.id);
+        if (node == null) {
+            return;
+        }
+        node.expanded = !node.expanded;
+        toggleSelect(node, true);
+        updateTXN(node);
+    }
+    function handleItemKeyDown(e) {
+        const targetElement = e.target;
+        const nodeElement = targetElement.closest(".treexplorer-node");
+        if (nodeElement == null) {
+            return;
+        }
+        const node = _nodes.get(nodeElement.id);
+        if (node == null) {
+            return;
+        }
+        if (e.key === "ArrowUp") {
+            e.preventDefault();
+            focusPrevious(node);
+        }
+        else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            focusNext(node);
+        }
+        else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            if (expandOrFocusChild(node)) {
+                updateTXN(node);
+            }
+        }
+        else if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            if (collapseOfFocusParent(node)) {
+                updateTXN(node);
+            }
+        }
+        else if (e.key === "Enter") {
+            node.expanded = !node.expanded;
+            toggleSelect(node, true);
+            updateTXN(node);
+        }
+    }
     const tx = {
         HTML: buildTreexplorerHTML(),
         setRoots: (roots) => {
             _config.roots = roots;
             _roots.length = 0;
             tx.HTML.innerHTML = "";
+            if (!Array.isArray(_config.roots)) {
+                _config.roots = [_config.roots];
+            }
             _config.roots.forEach((r) => {
                 const node = buildTXN(r, null);
                 _roots.push(node);
@@ -364,7 +438,9 @@ function treexplorer(config) {
         },
         collapseAll() {
             _nodes.forEach((n) => {
-                n.expanded = false;
+                if (n.path.length >= _visibilityOffset) {
+                    n.expanded = false;
+                }
             });
             return tx;
         },
@@ -372,6 +448,15 @@ function treexplorer(config) {
             _nodes.forEach((n) => {
                 n.expanded = true;
             });
+            return tx;
+        },
+        collapseNode(id) {
+            if (_nodes.has(id)) {
+                const node = _nodes.get(id);
+                if (node != null) {
+                    toggleExpanded(node, false, false);
+                }
+            }
             return tx;
         },
         expandNode(id) {
@@ -387,14 +472,24 @@ function treexplorer(config) {
             if (_nodes.has(id)) {
                 const node = _nodes.get(id);
                 if (node != null) {
-                    const lastParentNode = toggleExpanded(node, true, true);
-                    updateTXN(lastParentNode).then((_) => {
+                    const parentNode = node.family.parent;
+                    if (parentNode != null) {
+                        const lastParentNode = toggleExpanded(parentNode, true, true);
+                        updateTXN(lastParentNode).then((_) => {
+                            node.HTML.item.scrollIntoView({
+                                behavior: "smooth",
+                                block: "center",
+                                inline: "nearest",
+                            });
+                        });
+                    }
+                    else {
                         node.HTML.item.scrollIntoView({
                             behavior: "smooth",
                             block: "center",
                             inline: "nearest",
                         });
-                    });
+                    }
                 }
             }
             return tx;
@@ -414,6 +509,19 @@ function treexplorer(config) {
                 }
             }
             return tx;
+        },
+        toggleRootsVisibility(visible) {
+            _config.hideRoots = !visible;
+            _visibilityOffset = visible ? 0 : 1;
+            _nodes.forEach((n) => {
+                if (n.path.length <= _visibilityOffset) {
+                    n.expanded = true;
+                }
+            });
+            return tx;
+        },
+        getRootItems() {
+            return _roots.map((r) => r.object);
         },
         getNodeItem(id) {
             const node = _nodes.get(id);
@@ -448,33 +556,10 @@ function treexplorer(config) {
     tx.setGetId(_config.getId);
     tx.setGetChildren(_config.getChildren);
     tx.setGetHTML(_config.getHTML);
-    tx.setRoots(_config.roots);
+    tx.setRoots(Array.isArray(_config.roots) ? _config.roots : [_config.roots]);
+    tx.toggleRootsVisibility(!_config.hideRoots);
     tx.update();
     return tx;
-}
-
-function treexplorerLabelNode(getLabelText) {
-    return (o) => {
-        const div = document.createElement("div");
-        div.style.whiteSpace = "nowrap";
-        div.textContent = getLabelText(o);
-        return div;
-    };
-}
-function treexplorerImageLabelNode(getLabelText, getImageSrc) {
-    return (o) => {
-        const div = document.createElement("div");
-        div.style.display = "flex";
-        div.style.gap = "0.5em";
-        const img = document.createElement("img");
-        img.src = getImageSrc(o);
-        const txt = document.createElement("span");
-        txt.style.whiteSpace = "nowrap";
-        txt.textContent = getLabelText(o);
-        div.appendChild(img);
-        div.appendChild(txt);
-        return div;
-    };
 }
 
 export { treexplorer, treexplorerImageLabelNode, treexplorerLabelNode };
