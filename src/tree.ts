@@ -272,6 +272,15 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       });
       return tx;
     },
+    collapseNode(id: string) {
+      if (_nodes.has(id)) {
+        const node = _nodes.get(id);
+        if (node != null) {
+          toggleExpanded(node, false, false);
+        }
+      }
+      return tx;
+    },
     expandNode(id: string) {
       if (_nodes.has(id)) {
         const node = _nodes.get(id);

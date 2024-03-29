@@ -21,6 +21,7 @@ export type TX<T> = {
   updateNode: (id: string) => TX<T>;
   collapseAll: () => TX<T>;
   expandAll: () => TX<T>;
+  collapseNode: (id: string) => TX<T>;
   expandNode: (id: string) => TX<T>;
   makeNodeVisible: (id: string) => TX<T>;
   unselectAll: () => TX<T>;
