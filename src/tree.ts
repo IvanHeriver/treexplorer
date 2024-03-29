@@ -260,7 +260,9 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     },
     collapseAll() {
       _nodes.forEach((n) => {
-        n.expanded = false;
+        if (n.path.length >= _visibilityOffset) {
+          n.expanded = false;
+        }
       });
       return tx;
     },
