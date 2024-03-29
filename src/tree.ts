@@ -341,6 +341,9 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       });
       return tx;
     },
+    getRootItems() {
+      return _roots.map((r) => r.object);
+    },
     getNodeItem(id) {
       const node = _nodes.get(id);
       if (node != null) return node.object;
