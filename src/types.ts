@@ -15,6 +15,7 @@ export type TX<T> = {
   setGetChildren: (
     getChildren: (o: T) => (T[] | null) | Promise<T[] | null>
   ) => TX<T>;
+  setIsInterctive: (getIsInteractive: (o: T) => boolean) => TX<T>;
   addSelectListener: (onSelect: TXSelectListener<T>) => TX<T>;
   removeSelectListener: (onSelect: TXSelectListener<T>) => TX<T>;
   update: () => TX<T>;

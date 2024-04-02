@@ -239,6 +239,10 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       _config.getChildren = getChildren;
       return tx;
     },
+    setIsInterctive(getIsInteractive) {
+      _config.getIsInteractive = getIsInteractive;
+      return tx;
+    },
     update() {
       _roots.forEach((r) => {
         updateTXN(r);
