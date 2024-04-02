@@ -124,16 +124,18 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       node.family.children = null;
       node.HTML.arrow.innerHTML = "";
       node.HTML.children.style.display = "none";
+      node.HTML.children.innerHTML = "";
     } else {
       node.family.children = [];
       node.family.children = childrenObjects.map((o) => buildTXN(o, node));
       node.HTML.children.innerHTML = "";
       for (const child of node.family.children) {
-        node.HTML.children.appendChild(child.HTML.container);
         await updateTXN(child);
       }
-
       if (node.expanded) {
+        for (const child of node.family.children) {
+          node.HTML.children.appendChild(child.HTML.container);
+        }
         // node.HTML.arrow.innerHTML = "&#x25BE";
         node.HTML.arrow.innerHTML = "&#11167;";
         node.HTML.children.style.display = "block";
