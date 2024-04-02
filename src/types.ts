@@ -34,6 +34,7 @@ export type TXConfig<T> = {
   getHTML?: (o: T) => HTMLElement;
   getIsInteractive?: (o: T) => boolean;
   hideRoots?: boolean;
+  autoCollapseSiblings?: boolean;
 };
 
 export type TXReConfig<T> = {
@@ -43,6 +44,7 @@ export type TXReConfig<T> = {
   getHTML?: (o: T) => HTMLElement;
   getIsInteractive?: (o: T) => boolean;
   hideRoots?: boolean;
+  autoCollapseSiblings?: boolean;
 };
 
 export type TXConfig_<T> = {
@@ -52,6 +54,7 @@ export type TXConfig_<T> = {
   getHTML: (o: T) => HTMLElement;
   getIsInteractive: (o: T) => boolean;
   hideRoots: boolean;
+  autoCollapseSiblings: boolean;
 };
 
 export type TXN<T> = {
