@@ -10,7 +10,7 @@ import { treexplorerLabelNode } from "./treeNodes";
 import type { TX, TXN, TXSelectListener, TXConfig, TXConfig_ } from "./types";
 
 export function treexplorer<T>(config: TXConfig<T>): TX<T> {
-  const _config: TXConfig_<T> = {
+  let _config: TXConfig_<T> = {
     getChildren: (_) => null,
     getHTML: treexplorerLabelNode((o: T) => _config.getId(o)),
     getIsInteractive: (_) => true,
@@ -211,36 +211,41 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     }
   }
 
+  function setRoots() {
+    _roots.length = 0;
+    tx.HTML.innerHTML = "";
+    if (!Array.isArray(_config.roots)) {
+      _config.roots = [_config.roots];
+    }
+    _config.roots.forEach((r) => {
+      const node = buildTXN(r, null);
+      _roots.push(node);
+      tx.HTML.appendChild(node.HTML.container);
+    });
+    setRootVisibility();
+  }
+
+  function setRootVisibility() {
+    _visibilityOffset = _config.hideRoots ? 1 : 0;
+    _nodes.forEach((n) => {
+      if (n.path.length <= _visibilityOffset) {
+        n.expanded = true;
+      }
+    });
+    return tx;
+  }
+
   const tx: TX<T> = {
     HTML: buildTreexplorerHTML(),
-    setRoots: (roots) => {
-      _config.roots = roots;
-      _roots.length = 0;
-      tx.HTML.innerHTML = "";
-      if (!Array.isArray(_config.roots)) {
-        _config.roots = [_config.roots];
+    configure: (config) => {
+      _config = { ..._config, ...config };
+      if (config.roots != undefined) {
+        _nodes.clear();
+        setRoots();
       }
-      _config.roots.forEach((r) => {
-        const node = buildTXN(r, null);
-        _roots.push(node);
-        tx.HTML.appendChild(node.HTML.container);
-      });
-      return tx;
-    },
-    setGetId(getId) {
-      _config.getId = getId;
-      return tx;
-    },
-    setGetHTML(getHTML) {
-      _config.getHTML = getHTML;
-      return tx;
-    },
-    setGetChildren(getChildren) {
-      _config.getChildren = getChildren;
-      return tx;
-    },
-    setIsInterctive(getIsInteractive) {
-      _config.getIsInteractive = getIsInteractive;
+      if (config.hideRoots != undefined) {
+        setRootVisibility();
+      }
       return tx;
     },
     update() {
@@ -276,6 +281,7 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       _nodes.forEach((n) => {
         n.expanded = true;
       });
+      console.log("_nodes", _nodes.size);
       return tx;
     },
     collapseNode(id: string) {
@@ -337,16 +343,6 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       }
       return tx;
     },
-    toggleRootsVisibility(visible) {
-      _config.hideRoots = !visible;
-      _visibilityOffset = visible ? 0 : 1;
-      _nodes.forEach((n) => {
-        if (n.path.length <= _visibilityOffset) {
-          n.expanded = true;
-        }
-      });
-      return tx;
-    },
     getRootItems() {
       return _roots.map((r) => r.object);
     },
@@ -380,11 +376,7 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       };
     },
   };
-  tx.setGetId(_config.getId);
-  tx.setGetChildren(_config.getChildren);
-  tx.setGetHTML(_config.getHTML);
-  tx.setRoots(Array.isArray(_config.roots) ? _config.roots : [_config.roots]);
-  tx.toggleRootsVisibility(!_config.hideRoots);
+  tx.configure(config);
   tx.update();
   return tx;
 }
