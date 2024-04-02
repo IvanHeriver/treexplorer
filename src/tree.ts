@@ -190,7 +190,6 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     }
     toggleSelect(node, true);
     const nodes = toggleExpanded(node);
-    console.log(nodes);
     updateMultipleTXN(nodes);
   }
 
