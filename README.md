@@ -47,20 +47,31 @@ Checkout out the [demo](https://ivanheriver.github.io/treexplorer/) and associat
 The treexplorer function requires a config objects with the following structure:
 
 ```ts
-type TreexplorerConfig<T> = {
-  roots: T[];
+type TXConfig<T> = {
+  roots: T[] | T;
   getId: (o: T) => string;
-  getChildren: (o: T) => (T[] | null) | Promise<T[] | null>;
-  getHTML: (o: T) => HTMLElement;
+  getChildren?: (o: T) => (T[] | null) | Promise<T[] | null>;
+  getHTML?: (o: T) => HTMLElement;
+  getIsInteractive?: (o: T) => boolean;
+  hideRoots?: boolean;
+  autoCollapseSiblings?: boolean;
 };
 ```
 
 where `T` is the type of a node in your data structure.
-You need to be able to define 3 functions:
+You need to be able to define at least:
 
+- `roots`: either an array of `T` object or a single `T` object
 - `getId`: given a node item of type `T` returns a unique identifier for this node
-- `getChildren`: given a node item of type `T` returns either `null` (if it is a leaf node) or an array of `T` objects. It can also be an async function.
-- `getHTML`: fiven a node item of type `T`, returns and HTMLElement to use as the HTML content of the node.
+
+It is also often needed to define
+
+- the `getChildren` function which given a node item of type `T` returns either `null` (if it is a leaf node) or an array of `T` objects. It can also be an async function.
+- the `getHTML` function which given a node item of type `T`, returns and HTMLElement to use as the HTML content of the node.
+  You can use one of the predefined `treexplorerLabelNode` or `treexplorerImageLabelNode` builder functions which both come with `treexplorer`.
+  They require to define function to get the _label_ (and image _src_) given an item of type `T` much like `getId`, `getChildren` and `getHTML` functions.
+
+Many examples on how to use the `treexplorer` are available in the file `example/test.js`.
 
 Here is an example where each element of my tree data structured is supposed to have three components: `id`, `label` and `children`.
 
@@ -92,7 +103,7 @@ if (container) {
 
 # Customizing appearance
 
-Chances are you'd like to modify the appearance of the tree view to match the context it used.
+Chances are you'd like to modify the appearance of the tree view to match the context it used in.
 Some CSS class can be used to modify the appearance:
 
 - `.treexplorer-main`: only to set some CSS variable
@@ -101,9 +112,11 @@ Some CSS class can be used to modify the appearance:
   - `--arrow-div-width`: width of the arrow of parent nodes
 - `.treexplorer-node`: styling of each node, including
   - `.treexplorer-node.selected` for selected nodes
-  - `.treexplorer-node:hover`
-  - `.treexplorer-node:focus`
-- `.treexplorer-trunk-line`: to define the `color` of the line connecting children
+  - `.treexplorer-node:hover` for the appearance on hover
+  - `.treexplorer-node:focus` for the appearance when focused
+- `.treexplorer-trunk-line`: to define the `color` of the vertical line connecting children
+
+Here is an example:
 
 ```css
 .treexplorer-main {
