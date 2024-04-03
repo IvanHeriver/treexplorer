@@ -27,15 +27,28 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
 
   let _visibilityOffset: number = 0;
 
+  const _nodesToUpdate: Set<TXN<T>> = new Set();
+
+  function registerNodesForUpdate(...nodes: TXN<T>[]) {
+    nodes.forEach((n) => _nodesToUpdate.add(n));
+  }
+
+  function updateNodesToUpdates() {
+    const nodesToUpdate = [..._nodesToUpdate.values()];
+    _nodesToUpdate.clear();
+    return updateMultipleTXN(nodesToUpdate, false);
+  }
+
   function toggleSelect(node: TXN<T>, select?: boolean) {
     select = select === undefined ? !node.selected : select;
     if (node.selected != select) {
       if (_selectedNode) {
         _selectedNode.selected = false;
-        updateTXN(_selectedNode);
+        registerNodesForUpdate(_selectedNode);
+        _nodesToUpdate.add(_selectedNode);
       }
       node.selected = select;
-      updateTXN(node);
+      registerNodesForUpdate(node);
     }
     if (select) {
       _selectedNode = node;
@@ -49,19 +62,20 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     node: TXN<T>,
     expanded?: boolean,
     recursive?: boolean
-  ): TXN<T>[] {
+  ) {
     let _expanded = !node.expanded;
     if (expanded != undefined) {
       _expanded = expanded;
     }
     node.expanded = _expanded;
+    registerNodesForUpdate(node);
     if (_config.autoCollapseSiblings && node.expanded) {
       const siblings = [
         ...node.family.afterSiblings,
         ...node.family.beforeSiblings,
       ];
       siblings.forEach((n) => toggleExpanded(n, false, false));
-      return [...siblings, node];
+      registerNodesForUpdate(...siblings);
     }
     if (
       expanded != undefined &&
@@ -74,10 +88,9 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       // - if recursive is set and is true
       const parent = node.family.parent;
       if (parent != null) {
-        return toggleExpanded(parent, true, true);
+        toggleExpanded(parent, true, true);
       }
     }
-    return [node];
   }
 
   function buildTXN(object: T, parent: TXN<T> | null): TXN<T> {
@@ -92,12 +105,12 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     return node;
   }
 
-  function updateMultipleTXN(nodes: TXN<T>[]) {
-    const promises = nodes.map((n) => updateTXN(n));
+  function updateMultipleTXN(nodes: TXN<T>[], recursive: boolean = true) {
+    const promises = nodes.map((n) => updateTXN(n, recursive));
     return Promise.all(promises);
   }
 
-  async function updateTXN(node: TXN<T>) {
+  async function updateTXN(node: TXN<T>, recursive: boolean = true) {
     const activeElement = document.activeElement;
 
     // update interactivity
@@ -142,10 +155,12 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       node.HTML.children.innerHTML = "";
     } else {
       node.family.children = [];
-      node.family.children = childrenObjects.map((o) => buildTXN(o, node));
-      node.HTML.children.innerHTML = "";
-      for (const child of node.family.children) {
-        await updateTXN(child);
+      if (node.expanded || recursive) {
+        node.family.children = childrenObjects.map((o) => buildTXN(o, node));
+        node.HTML.children.innerHTML = "";
+        for (const child of node.family.children) {
+          await updateTXN(child, recursive);
+        }
       }
       if (node.expanded) {
         for (const child of node.family.children) {
@@ -189,8 +204,8 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
       return;
     }
     toggleSelect(node, true);
-    const nodes = toggleExpanded(node);
-    updateMultipleTXN(nodes);
+    toggleExpanded(node);
+    updateNodesToUpdates();
   }
 
   function handleItemKeyDown(e: KeyboardEvent) {
@@ -212,17 +227,17 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
       if (expandOrFocusChild(node)) {
-        updateTXN(node);
+        updateTXN(node, false);
       }
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
       if (collapseOfFocusParent(node)) {
-        updateTXN(node);
+        updateTXN(node, false);
       }
     } else if (e.key === "Enter") {
       toggleSelect(node, true);
-      const nodes = toggleExpanded(node);
-      updateMultipleTXN(nodes);
+      toggleExpanded(node);
+      updateNodesToUpdates();
     }
   }
 
@@ -323,8 +338,8 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
         if (node != null) {
           const parentNode = node.family.parent;
           if (parentNode != null) {
-            const lastParentNodes = toggleExpanded(parentNode, true, true);
-            updateMultipleTXN(lastParentNodes).then((_) => {
+            toggleExpanded(parentNode, true, true);
+            updateNodesToUpdates().then((_) => {
               node.HTML.item.scrollIntoView({
                 behavior: "smooth",
                 block: "center",
@@ -345,6 +360,7 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     unselectAll() {
       if (_selectedNode) {
         toggleSelect(_selectedNode, false);
+        updateNodesToUpdates();
       }
       return tx;
     },
