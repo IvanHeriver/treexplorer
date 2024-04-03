@@ -15,7 +15,7 @@ export function treexplorer<T>(config: TXConfig<T>): TX<T> {
     getHTML: treexplorerLabelNode((o: T) => _config.getId(o)),
     getIsInteractive: (_) => true,
     hideRoots: false,
-    autoCollapseSiblings: true,
+    autoCollapseSiblings: false,
     ...config,
     roots: [],
   };
