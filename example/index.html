@@ -22,12 +22,32 @@
         <button id="btn-expand-all">Expand all</button>
         <button id="btn-unselect-all">Unselect all</button>
         <button id="btn-select-random-leaf">Select random leaf node</button>
-        <button id="btn-select-random-container">Select random container node</button>
+        <button id="btn-select-random-container">
+          Select random container node
+        </button>
       </div>
       <div class="actions-grp">
         <h2>Appearance</h2>
-        <button id="btn-indent-toggle">Toggle indentation</button>
+        <label for="btn-indent-toggle">
+          <input
+            type="checkbox"
+            name="btn-indent-toggle"
+            id="btn-indent-toggle"
+          />
+          Toggle large indentation
+        </label>
         <button id="btn-custom-html">Use custom HTML</button>
+      </div>
+      <div class="actions-grp">
+        <h2>Behavior</h2>
+        <label for="btn-auto-collapse-siblings">
+          <input
+            type="checkbox"
+            name="btn-auto-collapse-siblings"
+            id="btn-auto-collapse-siblings"
+          />
+          Toggle auto siblings collapsing
+        </label>
       </div>
       <div class="actions-grp">
         <h2>Mutating tree</h2>

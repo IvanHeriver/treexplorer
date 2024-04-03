@@ -8,10 +8,7 @@ export type TXItemFamily<T> = {
 };
 export type TX<T> = {
     HTML: HTMLElement;
-    setRoots: (roots: T[] | T) => TX<T>;
-    setGetId: (getId: (o: T) => string) => TX<T>;
-    setGetHTML: (getHTML: (o: T) => HTMLElement) => TX<T>;
-    setGetChildren: (getChildren: (o: T) => (T[] | null) | Promise<T[] | null>) => TX<T>;
+    configure: (config: TXReConfig<T>) => TX<T>;
     addSelectListener: (onSelect: TXSelectListener<T>) => TX<T>;
     removeSelectListener: (onSelect: TXSelectListener<T>) => TX<T>;
     update: () => TX<T>;
@@ -23,7 +20,6 @@ export type TX<T> = {
     makeNodeVisible: (id: string) => TX<T>;
     unselectAll: () => TX<T>;
     setSelectedNodeItem: (id: string) => TX<T>;
-    toggleRootsVisibility: (visible: boolean) => TX<T>;
     getRootItems: () => T[];
     getNodeItem: (id: string) => T | null;
     getNodeItemFamily: (id: string) => null | TXItemFamily<T>;
@@ -36,6 +32,16 @@ export type TXConfig<T> = {
     getHTML?: (o: T) => HTMLElement;
     getIsInteractive?: (o: T) => boolean;
     hideRoots?: boolean;
+    autoCollapseSiblings?: boolean;
+};
+export type TXReConfig<T> = {
+    roots?: T[] | T;
+    getId?: (o: T) => string;
+    getChildren?: (o: T) => (T[] | null) | Promise<T[] | null>;
+    getHTML?: (o: T) => HTMLElement;
+    getIsInteractive?: (o: T) => boolean;
+    hideRoots?: boolean;
+    autoCollapseSiblings?: boolean;
 };
 export type TXConfig_<T> = {
     roots: T[] | T;
@@ -44,6 +50,7 @@ export type TXConfig_<T> = {
     getHTML: (o: T) => HTMLElement;
     getIsInteractive: (o: T) => boolean;
     hideRoots: boolean;
+    autoCollapseSiblings: boolean;
 };
 export type TXN<T> = {
     id: string;

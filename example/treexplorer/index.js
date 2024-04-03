@@ -210,21 +210,31 @@ function treexplorerImageLabelNode(getLabelText, getImageSrc) {
 }
 
 function treexplorer(config) {
-    const _config = Object.assign({ getChildren: (_) => null, getHTML: treexplorerLabelNode((o) => _config.getId(o)), getIsInteractive: (_) => true, hideRoots: false }, config);
-    const _roots = [];
+    let _config = Object.assign(Object.assign({ getChildren: (_) => null, getHTML: treexplorerLabelNode((o) => _config.getId(o)), getIsInteractive: (_) => true, hideRoots: false, autoCollapseSiblings: false }, config), { roots: [] });
+    let _roots = [];
     const _nodes = new Map();
     let _selectedNode = null;
     let _selectListeners = [];
     let _visibilityOffset = 0;
+    const _nodesToUpdate = new Set();
+    function registerNodesForUpdate(...nodes) {
+        nodes.forEach((n) => _nodesToUpdate.add(n));
+    }
+    function updateNodesToUpdates() {
+        const nodesToUpdate = [..._nodesToUpdate.values()];
+        _nodesToUpdate.clear();
+        return updateMultipleTXN(nodesToUpdate, false);
+    }
     function toggleSelect(node, select) {
         select = select === undefined ? !node.selected : select;
         if (node.selected != select) {
             if (_selectedNode) {
                 _selectedNode.selected = false;
-                updateTXN(_selectedNode);
+                registerNodesForUpdate(_selectedNode);
+                _nodesToUpdate.add(_selectedNode);
             }
             node.selected = select;
-            updateTXN(node);
+            registerNodesForUpdate(node);
         }
         if (select) {
             _selectedNode = node;
@@ -239,6 +249,15 @@ function treexplorer(config) {
             _expanded = expanded;
         }
         node.expanded = _expanded;
+        registerNodesForUpdate(node);
+        if (_config.autoCollapseSiblings && node.expanded) {
+            const siblings = [
+                ...node.family.afterSiblings,
+                ...node.family.beforeSiblings,
+            ];
+            siblings.forEach((n) => toggleExpanded(n, false, false));
+            registerNodesForUpdate(...siblings);
+        }
         if (expanded != undefined &&
             expanded &&
             recursive != undefined &&
@@ -248,10 +267,9 @@ function treexplorer(config) {
             // - if recursive is set and is true
             const parent = node.family.parent;
             if (parent != null) {
-                return toggleExpanded(parent, true, true);
+                toggleExpanded(parent, true, true);
             }
         }
-        return node;
     }
     function buildTXN(object, parent) {
         const id = _config.getId(object);
@@ -263,8 +281,12 @@ function treexplorer(config) {
         _nodes.set(node.id, node);
         return node;
     }
-    function updateTXN(node) {
-        return __awaiter(this, void 0, void 0, function* () {
+    function updateMultipleTXN(nodes, recursive = true) {
+        const promises = nodes.map((n) => updateTXN(n, recursive));
+        return Promise.all(promises);
+    }
+    function updateTXN(node_1) {
+        return __awaiter(this, arguments, void 0, function* (node, recursive = true) {
             const activeElement = document.activeElement;
             // update interactivity
             node.HTML.item.classList.toggle("non-interactive", !_config.getIsInteractive(node.object));
@@ -301,16 +323,21 @@ function treexplorer(config) {
                 node.family.children = null;
                 node.HTML.arrow.innerHTML = "";
                 node.HTML.children.style.display = "none";
+                node.HTML.children.innerHTML = "";
             }
             else {
                 node.family.children = [];
-                node.family.children = childrenObjects.map((o) => buildTXN(o, node));
-                node.HTML.children.innerHTML = "";
-                for (const child of node.family.children) {
-                    node.HTML.children.appendChild(child.HTML.container);
-                    yield updateTXN(child);
+                if (node.expanded || recursive) {
+                    node.family.children = childrenObjects.map((o) => buildTXN(o, node));
+                    node.HTML.children.innerHTML = "";
+                    for (const child of node.family.children) {
+                        yield updateTXN(child, recursive);
+                    }
                 }
                 if (node.expanded) {
+                    for (const child of node.family.children) {
+                        node.HTML.children.appendChild(child.HTML.container);
+                    }
                     // node.HTML.arrow.innerHTML = "&#x25BE";
                     node.HTML.arrow.innerHTML = "&#11167;";
                     node.HTML.children.style.display = "block";
@@ -346,9 +373,9 @@ function treexplorer(config) {
         if (node == null) {
             return;
         }
-        node.expanded = !node.expanded;
         toggleSelect(node, true);
-        updateTXN(node);
+        toggleExpanded(node);
+        updateNodesToUpdates();
     }
     function handleItemKeyDown(e) {
         const targetElement = e.target;
@@ -371,47 +398,55 @@ function treexplorer(config) {
         else if (e.key === "ArrowRight") {
             e.preventDefault();
             if (expandOrFocusChild(node)) {
-                updateTXN(node);
+                updateTXN(node, false);
             }
         }
         else if (e.key === "ArrowLeft") {
             e.preventDefault();
             if (collapseOfFocusParent(node)) {
-                updateTXN(node);
+                updateTXN(node, false);
             }
         }
         else if (e.key === "Enter") {
-            node.expanded = !node.expanded;
             toggleSelect(node, true);
-            updateTXN(node);
+            toggleExpanded(node);
+            updateNodesToUpdates();
         }
+    }
+    function setRoots() {
+        _roots = [];
+        tx.HTML.innerHTML = "";
+        if (!Array.isArray(_config.roots)) {
+            _config.roots = [_config.roots];
+        }
+        _config.roots.forEach((r) => {
+            const node = buildTXN(r, null);
+            _roots.push(node);
+            _nodes.set(node.id, node);
+            tx.HTML.appendChild(node.HTML.container);
+        });
+        setRootVisibility();
+    }
+    function setRootVisibility() {
+        _visibilityOffset = _config.hideRoots ? 1 : 0;
+        _nodes.forEach((n) => {
+            if (n.path.length < _visibilityOffset) {
+                n.expanded = true;
+            }
+        });
+        return tx;
     }
     const tx = {
         HTML: buildTreexplorerHTML(),
-        setRoots: (roots) => {
-            _config.roots = roots;
-            _roots.length = 0;
-            tx.HTML.innerHTML = "";
-            if (!Array.isArray(_config.roots)) {
-                _config.roots = [_config.roots];
+        configure: (config) => {
+            _config = Object.assign(Object.assign({}, _config), config);
+            if (config.roots != undefined) {
+                _nodes.clear();
+                setRoots();
             }
-            _config.roots.forEach((r) => {
-                const node = buildTXN(r, null);
-                _roots.push(node);
-                tx.HTML.appendChild(node.HTML.container);
-            });
-            return tx;
-        },
-        setGetId(getId) {
-            _config.getId = getId;
-            return tx;
-        },
-        setGetHTML(getHTML) {
-            _config.getHTML = getHTML;
-            return tx;
-        },
-        setGetChildren(getChildren) {
-            _config.getChildren = getChildren;
+            if (config.hideRoots != undefined) {
+                setRootVisibility();
+            }
             return tx;
         },
         update() {
@@ -474,8 +509,8 @@ function treexplorer(config) {
                 if (node != null) {
                     const parentNode = node.family.parent;
                     if (parentNode != null) {
-                        const lastParentNode = toggleExpanded(parentNode, true, true);
-                        updateTXN(lastParentNode).then((_) => {
+                        toggleExpanded(parentNode, true, true);
+                        updateNodesToUpdates().then((_) => {
                             node.HTML.item.scrollIntoView({
                                 behavior: "smooth",
                                 block: "center",
@@ -497,6 +532,7 @@ function treexplorer(config) {
         unselectAll() {
             if (_selectedNode) {
                 toggleSelect(_selectedNode, false);
+                updateNodesToUpdates();
             }
             return tx;
         },
@@ -508,16 +544,6 @@ function treexplorer(config) {
                     tx.makeNodeVisible(node.id);
                 }
             }
-            return tx;
-        },
-        toggleRootsVisibility(visible) {
-            _config.hideRoots = !visible;
-            _visibilityOffset = visible ? 0 : 1;
-            _nodes.forEach((n) => {
-                if (n.path.length <= _visibilityOffset) {
-                    n.expanded = true;
-                }
-            });
             return tx;
         },
         getRootItems() {
@@ -553,11 +579,7 @@ function treexplorer(config) {
             };
         },
     };
-    tx.setGetId(_config.getId);
-    tx.setGetChildren(_config.getChildren);
-    tx.setGetHTML(_config.getHTML);
-    tx.setRoots(Array.isArray(_config.roots) ? _config.roots : [_config.roots]);
-    tx.toggleRootsVisibility(!_config.hideRoots);
+    tx.configure(config);
     tx.update();
     return tx;
 }
